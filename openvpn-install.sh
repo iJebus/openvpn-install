@@ -85,7 +85,7 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			echo ""
 			echo "Tell me a name for the client cert"
 			echo "Please, use one word only, no special characters"
-			read -p "Client name: " -e -i client CLIENT
+			read -p "Client name: " -e CLIENT
 			cd /etc/openvpn/easy-rsa/
 			./easyrsa build-client-full $CLIENT nopass
 			# Generates the custom client.ovpn
@@ -128,7 +128,7 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			;;
 			3) 
 			echo ""
-			read -p "Do you really want to remove OpenVPN? [y/n]: " -e -i n REMOVE
+			read -p "Do you really want to remove OpenVPN? [y/n]: " -e REMOVE
 			if [[ "$REMOVE" = 'y' ]]; then
 				PORT=$(grep '^port ' /etc/openvpn/server.conf | cut -d " " -f 2)
 				if pgrep firewalld; then
@@ -198,10 +198,6 @@ else
 	echo "   6) Verisign"
 	read -p "DNS [1-6]: " -e -i 1 DNS
 	echo ""
-	echo "Finally, tell me your name for the client cert"
-	echo "Please, use one word only, no special characters"
-	read -p "Client name: " -e -i client CLIENT
-	echo ""
 	echo "Okay, that was all I needed. We are ready to setup your OpenVPN server now"
 	read -n1 -r -p "Press any key to continue..."
 		if [[ "$OS" = 'debian' ]]; then
@@ -229,7 +225,6 @@ else
 	./easyrsa --batch build-ca nopass
 	./easyrsa gen-dh
 	./easyrsa build-server-full server nopass
-	./easyrsa build-client-full $CLIENT nopass
 	./easyrsa gen-crl
 	# Move the stuff we need
 	cp pki/ca.crt pki/private/ca.key pki/dh.pem pki/issued/server.crt pki/private/server.key /etc/openvpn/easy-rsa/pki/crl.pem /etc/openvpn
@@ -364,7 +359,7 @@ crl-verify crl.pem" >> /etc/openvpn/server.conf
 		echo ""
 		echo "If your server is NATed (e.g. LowEndSpirit), I need to know the external IP"
 		echo "If that's not the case, just ignore this and leave the next field blank"
-		read -p "External IP: " -e USEREXTERNALIP
+		read -p "External IP: " -e -i $EXTERNALIP USEREXTERNALIP
 		if [[ "$USEREXTERNALIP" != "" ]]; then
 			IP=$USEREXTERNALIP
 		fi
@@ -393,11 +388,7 @@ comp-lzo
 setenv opt block-outside-dns
 key-direction 1
 verb 3" >> /etc/openvpn/client-common.txt
-	# Generates the custom client.ovpn
-	newclient "$CLIENT"
 	echo ""
 	echo "Finished!"
 	echo ""
-	echo "Your client configuration is available at" ~/"$CLIENT.ovpn"
-	echo "If you want to add more clients, you simply need to run this script another time!"
 fi
